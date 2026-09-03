@@ -18,6 +18,7 @@ export default function DeveloperPage() {
   const [requests, setRequests] = useState([]);
   const [requestRoles, setRequestRoles] = useState({});
   const [form, setForm] = useState({ email: "", password: "", name: "", role: "MANAGER" });
+  const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState(null);
   const [busy, setBusy] = useState(false);
 
@@ -248,12 +249,21 @@ export default function DeveloperPage() {
             </div>
             <div>
               <label>كلمة المرور المبدئية</label>
-              <input
-                type="text"
-                required
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-              />
+              <div className="password-field">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword((v) => !v)}
+                >
+                  {showPassword ? "إخفاء" : "إظهار"}
+                </button>
+              </div>
             </div>
             <div>
               <label>الاسم (اختياري)</label>

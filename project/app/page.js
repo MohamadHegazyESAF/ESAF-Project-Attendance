@@ -31,6 +31,7 @@ async function redirectByRole(router) {
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
 
@@ -65,12 +66,21 @@ export default function LoginPage() {
           required
         />
         <label>كلمة المرور</label>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+        <div className="password-field">
+          <input
+            type={showPassword ? "text" : "password"}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <button
+            type="button"
+            className="password-toggle"
+            onClick={() => setShowPassword((v) => !v)}
+          >
+            {showPassword ? "إخفاء" : "إظهار"}
+          </button>
+        </div>
         {error && <p className="error">{error}</p>}
         <button type="submit">دخول</button>
         <a href="/signup" style={{ marginTop: 12, fontSize: 13, color: "#6b6862", textAlign: "center" }}>

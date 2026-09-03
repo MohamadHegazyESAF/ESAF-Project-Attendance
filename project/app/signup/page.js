@@ -5,6 +5,7 @@ import { supabase } from "../../lib/supabaseClient";
 export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [employeeNumber, setEmployeeNumber] = useState("");
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -65,7 +66,22 @@ export default function SignupPage() {
         <label>البريد الإلكتروني</label>
         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
         <label>كلمة المرور</label>
-        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
+        <div className="password-field">
+          <input
+            type={showPassword ? "text" : "password"}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={6}
+          />
+          <button
+            type="button"
+            className="password-toggle"
+            onClick={() => setShowPassword((v) => !v)}
+          >
+            {showPassword ? "إخفاء" : "إظهار"}
+          </button>
+        </div>
         <label>رقم الموظف</label>
         <input
           type="text"
