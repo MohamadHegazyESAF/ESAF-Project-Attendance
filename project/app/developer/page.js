@@ -17,10 +17,11 @@ export default function DeveloperPage() {
   const [profiles, setProfiles] = useState([]);
   const [requests, setRequests] = useState([]);
   const [requestRoles, setRequestRoles] = useState({});
-  const [form, setForm] = useState({ email: "", password: "", name: "", role: "MANAGER" });
+  const [form, setForm] = useState({ email: "", password: "", name: "", role: "MANAGER", loginCode: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [codeEdits, setCodeEdits] = useState({});
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
@@ -61,6 +62,20 @@ export default function DeveloperPage() {
   async function updateRole(email, newRole) {
     await supabase.from("profiles").update({ role: newRole }).eq("email", email);
     loadProfiles();
+  }
+
+  async function saveLoginCode(email) {
+    const newCode = (codeEdits[email] ?? "").trim();
+    const { error } = await supabase
+      .from("profiles")
+      .update({ login_code: newCode || null })
+      .eq("email", email);
+    if (error) {
+      setMessage({ ok: false, text: "الكود ده مستخدم بالفعل لمستخدم تاني." });
+    } else {
+      setMessage({ ok: true, text: "تم تحديث كود الدخول." });
+      loadProfiles();
+    }
   }
 
   async function callDeleteUser({ email, userId }) {
@@ -107,8 +122,12 @@ export default function DeveloperPage() {
     if (!res.ok) {
       setMessage({ ok: false, text: json.error || "حدث خطأ" });
     } else {
-      setMessage({ ok: true, text: `تم إنشاء حساب ${form.email} بصلاحية ${ROLE_LABELS[form.role]}.` });
-      setForm({ email: "", password: "", name: "", role: "MANAGER" });
+      const codeNote = json.loginCode ? ` — كود الدخول: ${json.loginCode}` : "";
+      setMessage({
+        ok: true,
+        text: `تم إنشاء حساب ${json.email} بصلاحية ${ROLE_LABELS[form.role]}${codeNote}`,
+      });
+      setForm({ email: "", password: "", name: "", role: "MANAGER", loginCode: "" });
       loadProfiles();
     }
   }
@@ -237,14 +256,26 @@ export default function DeveloperPage() {
 
         <div className="card" style={{ maxWidth: "none", marginBottom: 24 }}>
           <h1 style={{ fontSize: 15 }}>إضافة مستخدم جديد</h1>
+          <p style={{ fontSize: 13, color: "#6b6862", margin: "4px 0 8px" }}>
+            سيب البريد الإلكتروني فاضي لو الموظف معندوش إيميل شركة — اكتب له كود دخول بدل منه، أو سيب
+            الاتنين فاضيين وهنولّد كود تلقائي تقدر تعدّله بعدين.
+          </p>
           <form onSubmit={createUser} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 8 }}>
             <div>
-              <label>البريد الإلكتروني</label>
+              <label>البريد الإلكتروني (اختياري لو فيه كود دخول)</label>
               <input
                 type="email"
-                required
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
+              />
+            </div>
+            <div>
+              <label>كود الدخول (اختياري)</label>
+              <input
+                type="text"
+                value={form.loginCode}
+                onChange={(e) => setForm({ ...form, loginCode: e.target.value })}
+                placeholder="مثال: EMP-1001"
               />
             </div>
             <div>
@@ -302,6 +333,7 @@ export default function DeveloperPage() {
               <tr>
                 <th>البريد الإلكتروني</th>
                 <th>الاسم</th>
+                <th>كود الدخول</th>
                 <th>الصلاحية</th>
                 <th>الحالة / إجراء</th>
               </tr>
@@ -311,6 +343,22 @@ export default function DeveloperPage() {
                 <tr key={p.email}>
                   <td>{p.email}</td>
                   <td>{p.name || "-"}</td>
+                  <td>
+                    <div style={{ display: "flex", gap: 4 }}>
+                      <input
+                        type="text"
+                        value={codeEdits[p.email] ?? p.login_code ?? ""}
+                        onChange={(e) => setCodeEdits({ ...codeEdits, [p.email]: e.target.value })}
+                        style={{ width: 90, padding: 6, border: "1px solid #dcd8d0", borderRadius: 6, fontSize: 12 }}
+                      />
+                      <button
+                        onClick={() => saveLoginCode(p.email)}
+                        style={{ border: "1px solid #dcd8d0", background: "#fff", borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 11 }}
+                      >
+                        حفظ
+                      </button>
+                    </div>
+                  </td>
                   <td>
                     <select
                       value={p.role}
