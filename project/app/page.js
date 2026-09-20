@@ -29,7 +29,7 @@ async function redirectByRole(router) {
 }
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
@@ -42,7 +42,22 @@ export default function LoginPage() {
   async function handleLogin(e) {
     e.preventDefault();
     setError("");
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+    const resolveRes = await fetch("/api/resolve-login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ identifier }),
+    });
+    const resolveJson = await resolveRes.json();
+    if (!resolveRes.ok) {
+      setError(resolveJson.error || "البريد الإلكتروني أو كود الدخول غير صحيح.");
+      return;
+    }
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email: resolveJson.email,
+      password,
+    });
     if (error) {
       setError("البريد الإلكتروني أو كلمة المرور غير صحيحة.");
       return;
@@ -57,12 +72,12 @@ export default function LoginPage() {
     <div className="page-center">
       <form onSubmit={handleLogin} className="card">
         <h1>تسجيل الدخول</h1>
-        <label>البريد الإلكتروني</label>
+        <label>البريد الإلكتروني أو كود الدخول</label>
         <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="name@company.com"
+          type="text"
+          value={identifier}
+          onChange={(e) => setIdentifier(e.target.value)}
+          placeholder="name@company.com أو كود الدخول"
           required
         />
         <label>كلمة المرور</label>
