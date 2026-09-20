@@ -10,6 +10,10 @@ function decodeJwtPayload(token) {
   }
 }
 
+function randomLoginCode() {
+  return "EMP-" + Math.floor(100000 + Math.random() * 900000);
+}
+
 export async function POST(req) {
   try {
     const authHeader = req.headers.get("authorization") || "";
@@ -29,7 +33,6 @@ export async function POST(req) {
       );
     }
 
-    // تحقق من هوية صاحب الطلب
     const authClient = createClient(supabaseUrl, anonKey);
     const { data: userData, error: userError } = await authClient.auth.getUser(token);
     if (userError || !userData?.user) {
@@ -47,7 +50,6 @@ export async function POST(req) {
 
     const admin = createClient(supabaseUrl, serviceKey);
 
-    // تأكد إن صاحب الطلب Developer فعلاً
     const { data: callerProfile, error: callerProfileError } = await admin
       .from("profiles")
       .select("role")
@@ -68,8 +70,20 @@ export async function POST(req) {
     }
 
     const body = await req.json();
-    const { email: rawEmail, password, role, name } = body;
-    const email = String(rawEmail || "").trim().toLowerCase();
+    const { password, role, name, loginCode: rawLoginCode } = body;
+    let email = String(body.email || "").trim().toLowerCase();
+    let loginCode = String(rawLoginCode || "").trim();
+
+    // لو مفيش إيميل ولا كود، ولّد كود تلقائي
+    if (!email && !loginCode) {
+      loginCode = randomLoginCode();
+    }
+    // لو مفيش إيميل حقيقي، اصنع إيميل داخلي مربوط بالكود عشان نظام الدخول يقدر يستخدمه
+    if (!email) {
+      const safeCode = loginCode.toLowerCase().replace(/[^a-z0-9-]/g, "");
+      email = `${safeCode}@login.internal`;
+    }
+
     if (!email || !password || !role) {
       return Response.json({ error: "بيانات ناقصة" }, { status: 400 });
     }
@@ -87,7 +101,14 @@ export async function POST(req) {
     const { error: profileError } = await admin
       .from("profiles")
       .upsert(
-        { email, role, name: name || null, status: "ACTIVE", user_id: createdUser?.user?.id || null },
+        {
+          email,
+          role,
+          name: name || null,
+          status: "ACTIVE",
+          user_id: createdUser?.user?.id || null,
+          login_code: loginCode || null,
+        },
         { onConflict: "email" }
       );
 
@@ -95,7 +116,7 @@ export async function POST(req) {
       return Response.json({ error: profileError.message }, { status: 400 });
     }
 
-    return Response.json({ ok: true });
+    return Response.json({ ok: true, email, loginCode: loginCode || null });
   } catch (err) {
     return Response.json({ error: err.message || "خطأ غير متوقع" }, { status: 500 });
   }
