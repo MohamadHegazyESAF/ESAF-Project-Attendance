@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
+import EyeIcon from "../../lib/EyeIcon";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -78,8 +79,9 @@ export default function SignupPage() {
             type="button"
             className="password-toggle"
             onClick={() => setShowPassword((v) => !v)}
+            aria-label={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
           >
-            {showPassword ? "إخفاء" : "إظهار"}
+            <EyeIcon open={showPassword} />
           </button>
         </div>
         <label>رقم الموظف</label>
