@@ -189,6 +189,7 @@ export default function DeveloperPage() {
         <span className="brand">مخطط الحضور والمواصلات</span>
         <nav>
           <a href="/developer">لوحة المطوّر</a>
+          <a href="/developer/employees">بيانات الموظفين</a>
           <a href="/developer/routes">إدارة الخطوط</a>
           <a href="/manager">معاينة: شاشة المدير</a>
           <a href="/admin">معاينة: تقرير المواصلات</a>
