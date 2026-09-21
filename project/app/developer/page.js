@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabaseClient";
+import EyeIcon from "../../lib/EyeIcon";
 
 const ROLES = ["DEVELOPER", "ADMIN", "MANAGER", "EMPLOYEE"];
 const ROLE_LABELS = {
@@ -291,8 +292,9 @@ export default function DeveloperPage() {
                   type="button"
                   className="password-toggle"
                   onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
                 >
-                  {showPassword ? "إخفاء" : "إظهار"}
+                  <EyeIcon open={showPassword} />
                 </button>
               </div>
             </div>
