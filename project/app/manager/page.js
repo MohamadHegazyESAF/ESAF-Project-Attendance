@@ -87,7 +87,7 @@ export default function ManagerPage() {
     setAttendance((prev) => ({ ...prev, [empId]: { ...prev[empId], [dayIndex]: next } }));
     setSaving(true);
     await supabase.from("attendance").upsert(
-      { employee_id: empId, week_start: weekStart, day_index: dayIndex, status: next },
+      { employee_id: empId, week_start: weekStart, day_index: dayIndex, status: next, updated_by: email },
       { onConflict: "employee_id,week_start,day_index" }
     );
     setSaving(false);
@@ -117,6 +117,7 @@ export default function ManagerPage() {
         <span className="brand">مخطط الحضور والمواصلات</span>
         <nav>
           <a href="/manager">شاشة المدير</a>
+          <a href="/manager/my-week">أسبوعي الشخصي</a>
           {role === "DEVELOPER" && <a href="/developer">لوحة المطوّر</a>}
           <button onClick={logout}>خروج</button>
         </nav>
